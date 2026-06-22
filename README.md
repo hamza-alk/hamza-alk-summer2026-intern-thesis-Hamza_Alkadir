@@ -2,6 +2,8 @@
 
 Small `yfinance` pipeline for collecting financial statements, market data, and derived operating metrics for public cybersecurity companies.
 
+![Cybersecurity moat efficiency chart](data/yfinance_cybersecurity/2026-06-22_public/moat_efficiency_simple.png)
+
 ## Quick Start
 
 ```bash
