@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Generated yfinance extracts can be regenerated.
+data/
