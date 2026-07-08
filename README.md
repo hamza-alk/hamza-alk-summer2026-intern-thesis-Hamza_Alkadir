@@ -25,17 +25,35 @@ Run the dashboard with:
 .venv/bin/python -m streamlit run streamlit_app.py
 ```
 
-The dashboard has two interactive thesis views:
+The root URL is a project overview. The sidebar starts with Summary Metrics,
+followed by Data Validation, Statistical Analysis, Cyber Vs Tech Resilience,
+and Cyber ETF Vs QQQ Downturn. Each page includes plain-English descriptions.
+The resilience pages use maximum drawdown as a fixed test while keeping tickers
+and downturn dates adjustable.
+
+The dashboard has five thesis views:
+
+- `Summary Metrics` - gives a plain-English overview of revenue growth, free
+  cash flow margin, Rule of 40, maximum drawdown, and downturn return.
 
 - `Cyber vs Tech Resilience` - tests the case that cyber was not necessarily
   more market-resilient than broad tech. You can change cyber tickers, broad
-  tech tickers, downturn dates, and the plotted metric.
-- `Cyber Growth vs Budget` - tests the case that cyber vendor growth remained
-  durable while security budget growth varied. You can change the cyber
-  companies, budget years, budget-growth values, and revenue lag.
+  tech tickers and downturn dates. Maximum drawdown is the single resilience
+  measure, and the evaluator gives a binary verdict for the current chart.
+- `Statistical Analysis` - runs cohort comparisons, exact permutation tests,
+  correlations, regressions, and regime splits for the cyber-vs-tech data. It
+  ends with a plain-English verdict on whether the data supports the thesis.
+  The verdict is scored by `thesis_verdict_scoring.py`, which keeps the model
+  static and reusable.
+- `Cyber ETF vs QQQ Downturn` - compares adjustable cybersecurity ETFs with an
+  adjustable broad-tech benchmark. It uses median maximum drawdown to produce a
+  binary supports/does-not-support verdict.
+- `Data Validation` - compares Yahoo Finance fundamentals with SEC EDGAR values
+  and shows which source is selected for analysis.
 
-Both views let you download the rendered chart as a PNG and the corresponding
-report data as a CSV.
+The chart views let you download the rendered chart as a PNG and the
+corresponding report data as a CSV. The statistical-analysis view lets you
+download its tables as a CSV.
 
 Useful files:
 
@@ -177,3 +195,36 @@ especially for newly listed companies, delisted companies, or statement lines
 that are named differently by company. FRED data is pulled from public CSV
 endpoints. The script keeps going when a ticker or macro series has missing data
 and records warnings in `run_metadata.json`.
+## SEC EDGAR data
+
+Pull SEC company facts and latest 10-K cybersecurity disclosures for five
+cybersecurity companies and five large technology companies:
+
+```bash
+.venv/bin/python scripts/sec_edgar_cyber_bigtech_pipeline.py
+```
+
+Outputs are written to `edgar_data/`:
+
+- `company_universe.csv`: ticker, cohort, CIK, and SEC company name.
+- `sec_company_facts_metrics.csv`: latest annual revenue, profitability, cash
+  flow, R&D, liquidity, and balance-sheet metrics.
+- `sec_cybersecurity_disclosures.csv`: latest 10-K cybersecurity mentions,
+  nearby dollar amounts, filing links, and review snippets.
+
+The disclosure scan does not estimate cybersecurity spending. It identifies
+potential disclosures for review because cybersecurity spend is generally not
+reported as a standardized SEC line item.
+
+### Validate yFinance fundamentals with EDGAR
+
+After running both data pipelines, compare overlapping fundamentals:
+
+```bash
+.venv/bin/python scripts/validate_yfinance_with_edgar.py
+```
+
+This writes `data/validation/financial_metric_validation.csv` and
+`data/validation/validation_summary.csv`. Differences up to 5% are validated,
+5%-15% require review, and differences above 15% fail validation. The selected
+value uses SEC EDGAR whenever available and falls back to yFinance otherwise.

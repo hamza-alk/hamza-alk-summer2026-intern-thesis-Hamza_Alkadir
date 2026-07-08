@@ -1,0 +1,25 @@
+{
+  "cyber_tickers": [
+    "CRWD",
+    "FTNT",
+    "OKTA",
+    "PANW",
+    "ZS"
+  ],
+  "big_tech_tickers": [
+    "AAPL",
+    "AMZN",
+    "GOOGL",
+    "META",
+    "MSFT"
+  ],
+  "output_dir": "edgar_data",
+  "sec_user_agent": "ThesisResearch hamza@example.com",
+  "notes": [
+    "Structured metrics come from SEC companyfacts us-gaap tags.",
+    "Free cash flow is a proxy: operating cash flow minus capex.",
+    "Cybersecurity spending is not usually disclosed as a standardized SEC line item.",
+    "The disclosure CSV scans latest 10-K text for cybersecurity mentions and dollar amounts nearby."
+  ],
+  "warnings": []
+}
