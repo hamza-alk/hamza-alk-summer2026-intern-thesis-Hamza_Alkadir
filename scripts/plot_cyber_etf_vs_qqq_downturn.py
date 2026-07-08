@@ -136,7 +136,13 @@ def normalized_prices(prices: pd.DataFrame) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True) if frames else pd.DataFrame()
 
 
-def draw_plot(indexed: pd.DataFrame, metrics: pd.DataFrame, output_path: Path, start: str, end: str) -> None:
+def draw_plot(
+    indexed: pd.DataFrame,
+    metrics: pd.DataFrame,
+    output_path: Path | None,
+    start: str,
+    end: str,
+) -> Image.Image:
     width, height = 1300, 820
     left, right, top, bottom = 110, 280, 100, 110
     plot_left, plot_right = left, width - right
@@ -158,7 +164,7 @@ def draw_plot(indexed: pd.DataFrame, metrics: pd.DataFrame, output_path: Path, s
 
     draw.text(
         (left, 28),
-        f"CIBR/HACK vs QQQ Downturn Performance ({start} to {end})",
+        f"Cyber ETFs vs Broad Tech ({start} to {end})",
         fill="#111827",
         font=title_font,
     )
@@ -222,8 +228,10 @@ def draw_plot(indexed: pd.DataFrame, metrics: pd.DataFrame, output_path: Path, s
         font=note_font,
     )
 
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    image.save(output_path)
+    if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        image.save(output_path)
+    return image
 
 
 def main() -> int:
