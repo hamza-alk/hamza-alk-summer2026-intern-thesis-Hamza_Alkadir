@@ -1,3 +1,5 @@
 yfinance>=1.4.1
 pandas>=2.2
 pillow>=10
+certifi>=2024.0.0
+streamlit>=1.36
