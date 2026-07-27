@@ -1084,6 +1084,22 @@ def deterministic_verdict_explanation(result: dict[str, object]) -> str:
     )
 
 
+def current_combined_thesis_result() -> dict[str, object] | None:
+    run_dir = latest_qqq_corrections_dir()
+    if run_dir is None:
+        return None
+    events = pd.read_csv(run_dir / "qqq_correction_events.csv")
+    etf_metrics = pd.read_csv(run_dir / "etf_metrics_by_correction.csv")
+    revenue_data = revenue_growth_by_downturn(
+        events,
+        tuple(parse_tickers(DEFAULT_CYBER_TICKERS)),
+        tuple(parse_tickers(DEFAULT_TECH_TICKERS)),
+    )
+    result = score_combined_thesis(events, etf_metrics, revenue_data)
+    result["dataset_source"] = str(run_dir)
+    return result
+
+
 def ai_verdict_explanation(result: dict[str, object]) -> str:
     from openai import OpenAI
 
@@ -2210,18 +2226,10 @@ def thesis_verdict_tab() -> None:
     st.subheader("Thesis Verdict")
     st.caption("Fixed scoring combines operating durability and market resilience.")
 
-    run_dir = latest_qqq_corrections_dir()
-    if run_dir is None:
+    result = current_combined_thesis_result()
+    if result is None:
         st.warning("No QQQ downturn dataset is available.")
         return
-    events = pd.read_csv(run_dir / "qqq_correction_events.csv")
-    etf_metrics = pd.read_csv(run_dir / "etf_metrics_by_correction.csv")
-    revenue_data = revenue_growth_by_downturn(
-        events,
-        tuple(parse_tickers(DEFAULT_CYBER_TICKERS)),
-        tuple(parse_tickers(DEFAULT_TECH_TICKERS)),
-    )
-    result = score_combined_thesis(events, etf_metrics, revenue_data)
 
     render_major_finding(
         f"{result['verdict']} — {result['total_points']}/10 points"
@@ -2308,20 +2316,18 @@ def main() -> None:
         unsafe_allow_html=True,
     )
     st.markdown("### Current verdict")
-    verdict_files = sorted(YFINANCE_RESULTS_ROOT.glob("*/verdict_*.txt"))
-    if verdict_files:
-        verdict_text = verdict_files[-1].read_text().strip()
-        if "may not support" in verdict_text.lower() or "does not support" in verdict_text.lower():
-            render_major_finding(
-                "The current evidence does not support the full thesis. "
-                "Cybersecurity may show operating strength, but it did not demonstrate "
-                "enough market resilience relative to broad tech in the analyzed downturn."
-            )
-        else:
-            render_major_finding(f"The current evidence supports the thesis. {verdict_text}")
-        st.caption(f"Verdict source: {verdict_files[-1].parent.name}")
+    result = current_combined_thesis_result()
+    if result is not None:
+        render_major_finding(
+            f"{result['verdict']} — {result['total_points']}/10 points"
+        )
+        st.write(deterministic_verdict_explanation(result))
+        st.caption(
+            f"Operating durability: {result['operating_points']}/6 · "
+            f"Market durability: {result['market_points']}/4"
+        )
     else:
-        st.warning("No saved verdict is available yet. Run the analysis pipeline to generate one.")
+        st.warning("No combined verdict is available yet.")
 
     st.subheader("Start here")
     st.write("Open **Summary Metrics** first. Use **Statistical Analysis** for the full test.")
